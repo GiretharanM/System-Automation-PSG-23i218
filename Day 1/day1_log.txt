@@ -1,0 +1,10 @@
+Reading: {'temperature': 70.54, 'pressure': 7.02, 'vibration': 1.37, 'current': 10.68}, Rule: NO_RULE_FIRED, Action: CONTINUE_NORMAL
+Reading: {'temperature': 51.88, 'pressure': 3.54, 'vibration': 2.71, 'current': 15.82}, Rule: HIGH_CURRENT, Action: CURRENT_WARNING
+Reading: {'temperature': 87.36, 'pressure': 4.92, 'vibration': 2.94, 'current': 18.67}, Rule: HIGH_TEMPERATURE, Action: STOP_MACHINE
+Reading: {'temperature': 81.03, 'pressure': 2.21, 'vibration': 4.99, 'current': 19.93}, Rule: HIGH_TEMPERATURE, Action: STOP_MACHINE
+Reading: {'temperature': 53.88, 'pressure': 5.38, 'vibration': 1.59, 'current': 6.99}, Rule: NO_RULE_FIRED, Action: CONTINUE_NORMAL
+Reading: {'temperature': 82.23, 'pressure': 4.42, 'vibration': 1.51, 'current': 10.19}, Rule: HIGH_TEMPERATURE, Action: STOP_MACHINE
+Reading: {'temperature': 59.4, 'pressure': 5.55, 'vibration': 2.7, 'current': 9.37}, Rule: NO_RULE_FIRED, Action: CONTINUE_NORMAL
+Reading: {'temperature': 86.68, 'pressure': 8.02, 'vibration': 4.58, 'current': 9.79}, Rule: HIGH_TEMPERATURE, Action: STOP_MACHINE
+Reading: {'temperature': 52.73, 'pressure': 2.36, 'vibration': 1.47, 'current': 18.58}, Rule: HIGH_CURRENT, Action: CURRENT_WARNING
+Reading: {'temperature': 56.79, 'pressure': 10.0, 'vibration': 2.83, 'current': 2.19}, Rule: HIGH_PRESSURE, Action: PRESSURE_WARNING
