@@ -1,171 +1,97 @@
-import random
-import time
+import pandas as pd
+import pickle
 
-LOG_FILE = "day1_log_Factory.txt"
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, classification_report
+from sklearn.preprocessing import LabelEncoder
 
-MACHINES = ["M1", "M2", "M3", "M4", "M5"]
+# STEP 1: Load dataset
+df = pd.read_csv("day2_sample.csv")
 
-RULES = [
-    {
-        "name": "CRITICAL_OVERLOAD",
-        "priority": 1,
-        "condition": lambda r: r["temperature"] > 93.0 and r["current"] > 15.0,
-        "action": "EMERGENCY_POWER_CUT"
-    },
-    {
-        "name": "HIGH_TEMP",
-        "priority": 2,
-        "condition": lambda r: r["temperature"] > 85.0,
-        "action": "STOP_MACHINE"
-    },
-    {
-        "name": "HIGH_PRESSURE",
-        "priority": 3,
-        "condition": lambda r: r["pressure"] > 4.0,
-        "action": "VENT_VALVE"
-    },
-    {
-        "name": "EXCESSIVE_VIBRATION",
-        "priority": 4,
-        "condition": lambda r: r["vibration"] > 40.0,
-        "action": "TRIGGER_MAINTENANCE_ALERT"
-    }
-]
+print("Dataset loaded successfully")
+print("Dataset shape:", df.shape)
+print(df.head())
 
-ACTION_PRIORITY = {
-    "EMERGENCY_POWER_CUT": 1,
-    "STOP_MACHINE": 2,
-    "LOG_ERROR_AND_HOLD": 3,
-    "VENT_VALVE": 4,
-    "TRIGGER_MAINTENANCE_ALERT": 5,
-    "CONTINUE_NORMAL": 6
-}
+# STEP 2: Separate input features and target
+X = df[[
+    "temperature",
+    "pressure",
+    "vibration",
+    "current",
+    "rpm"
+]]
 
+y = df["state"]
 
-def generate_sensor_data():
-    if random.random() < 0.05:
-        return {
-            "temperature": None,
-            "pressure": None,
-            "vibration": None,
-            "current": None
-        }
+# STEP 3: Convert machine states into numbers
+encoder = LabelEncoder()
+y_encoded = encoder.fit_transform(y)
 
-    if random.random() < 0.05:
-        return {
-            "temperature": round(random.uniform(110, 150), 1),
-            "pressure": round(random.uniform(8, 12), 2),
-            "vibration": round(random.uniform(90, 150), 1),
-            "current": round(random.uniform(40, 60), 1)
-        }
+# STEP 4: Split training and testing data
+X_train, X_test, y_train, y_test = train_test_split(
+    X,
+    y_encoded,
+    test_size=0.20,
+    random_state=42,
+    stratify=y_encoded
+)
 
-    return {
-        "temperature": round(random.uniform(50, 95), 1),
-        "pressure": round(random.uniform(1.5, 4.5), 2),
-        "vibration": round(random.uniform(10, 45), 1),
-        "current": round(random.uniform(5, 18), 1)
-    }
+print("\nTraining samples:", len(X_train))
+print("Testing samples:", len(X_test))
 
+# STEP 5: Create Decision Tree model
+model = DecisionTreeClassifier(
+    criterion="gini",
+    max_depth=5,
+    random_state=42,
+    class_weight="balanced"
+)
 
-def evaluate_rules(reading):
-    if reading["temperature"] is None:
-        return "SENSOR_DROPOUT_DETECTED", "LOG_ERROR_AND_HOLD"
+# STEP 6: Train the model
+model.fit(X_train, y_train)
 
-    for rule in sorted(RULES, key=lambda r: r["priority"]):
-        if rule["condition"](reading):
-            return rule["name"], rule["action"]
+print("\nDecision Tree training completed!")
 
-    return "NO_RULE_FIRED", "CONTINUE_NORMAL"
+# STEP 7: Test the trained model
+y_pred = model.predict(X_test)
 
+accuracy = accuracy_score(y_test, y_pred)
 
-def take_action(action):
-    messages = {
-        "EMERGENCY_POWER_CUT":
-            "EMERGENCY: Critical overload detected. Power cut required.",
-        "STOP_MACHINE":
-            "CRITICAL: High temperature detected. Stop the machine.",
-        "VENT_VALVE":
-            "WARNING: High pressure detected. Open the relief valve.",
-        "TRIGGER_MAINTENANCE_ALERT":
-            "WARNING: Excessive vibration. Maintenance is required.",
-        "LOG_ERROR_AND_HOLD":
-            "ERROR: Sensor readings unavailable. Hold and inspect the machine.",
-        "CONTINUE_NORMAL":
-            "Normal operation. No rule was triggered."
-    }
+print("\nModel Accuracy:", round(accuracy * 100, 2), "%")
 
-    return messages.get(action, "Unknown action.")
+print("\nClassification Report:")
+print(classification_report(
+    y_test,
+    y_pred,
+    labels=list(range(len(encoder.classes_))),
+    target_names=encoder.classes_,
+    zero_division=0
+))
 
+# STEP 8: Save the trained model
+with open("trained_model.pkl", "wb") as file:
+    pickle.dump(model, file)
 
-def log_decision(machine, reading, rule_name, action):
-    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+with open("label_encoder.pkl", "wb") as file:
+    pickle.dump(encoder, file)
 
-    with open(LOG_FILE, "a") as file:
-        file.write(
-            f"[{timestamp}] {machine} | "
-            f"SENSE: {reading} | "
-            f"THINK: {rule_name} | ACT: {action}\n"
-        )
+print("\nModel saved as trained_model.pkl")
+print("Label encoder saved as label_encoder.pkl")
 
+# STEP 9: Predict a new machine condition
+new_data = pd.DataFrame([{
+    "temperature": 85.0,
+    "pressure": 5.0,
+    "vibration": 2.5,
+    "current": 12.0,
+    "rpm": 1800
+}])
 
-def monitor_machines():
-    print("Five-Machine Monitoring System Started")
+prediction = model.predict(new_data)
+predicted_state = encoder.inverse_transform(prediction)
 
-    for tick in range(1, 11):
-        results = []
+print("\nNew Sensor Readings:")
+print(new_data)
 
-        print(f"\nMonitoring Cycle {tick}")
-
-        for machine in MACHINES:
-            reading = generate_sensor_data()
-            rule_name, action = evaluate_rules(reading)
-            outcome = take_action(action)
-
-            urgency = ACTION_PRIORITY[action]
-
-            results.append({
-                "machine": machine,
-                "reading": reading,
-                "rule": rule_name,
-                "action": action,
-                "urgency": urgency
-            })
-
-            print(f"\n{machine}")
-            print(f"  Sensor readings : {reading}")
-            print(f"  Rule triggered  : {rule_name}")
-            print(f"  Action          : {outcome}")
-
-            log_decision(machine, reading, rule_name, action)
-
-        urgent_machines = [
-            result for result in results
-            if result["action"] != "CONTINUE_NORMAL"
-        ]
-
-        if urgent_machines:
-            urgent_machines.sort(key=lambda r: r["urgency"])
-            top = urgent_machines[0]
-
-            print("\nMACHINE NEEDING IMMEDIATE ATTENTION")
-            print(f"Machine : {top['machine']}")
-            print(f"Problem : {top['rule']}")
-            print(f"Action  : {top['action']}")
-
-            if len(urgent_machines) > 1:
-                print("\nOther machines requiring attention:")
-                for result in urgent_machines[1:]:
-                    print(
-                        f"- {result['machine']}: "
-                        f"{result['rule']}"
-                    )
-        else:
-            print("\nAll five machines are operating normally.")
-
-        time.sleep(0.5)
-
-    print(f"\nMonitoring completed. Logs saved to {LOG_FILE}.")
-
-
-if __name__ == "__main__":
-    monitor_machines()
+print("Predicted Machine State:", predicted_state[0])

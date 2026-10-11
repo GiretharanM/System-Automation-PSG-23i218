@@ -1,0 +1,2 @@
+temperature,pressure,vibration,current,Naive_Bayes,Decision_Tree,Random_Forest
+85.0,5.0,2.5,12.0,STOP_MACHINE,STOP_MACHINE,STOP_MACHINE
