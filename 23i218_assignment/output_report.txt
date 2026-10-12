@@ -1,0 +1,124 @@
+================================================================================
+ ROBOTIC ARM JOINT HEALTH MONITORING SYSTEM
+================================================================================
+Initializing pipeline, loading historical dataset and technician logs...
+[OK] Model trained on 150 historical records.
+[OK] Technician maintenance logs loaded & parsed.
+
+================================================================================
+ DEMO 1: NOMINAL HEALTH CHECK
+================================================================================
+
+Arm ID: ARM-101  ===>  FINAL DECISION: [STATUS: SAFE]
+--------------------------------------------------------------------------------
+Rationale:
+  * SAFE: All joint sensors nominal. Predictive wear model indicates healthy joint state.
+  * No active mechanical flags in maintenance logs. Telemetry integrity verified.
+
+Component Signals:
+  1. Safety Monitor: Triggered=False, Warnings=False
+  2. Spoof Defense: Detected=False, Confidence=0%
+  3. Predictive Wear ML: Category=HEALTHY, P(Wear)=0.0%, Degraded Joints=[]
+  4. Maintenance Notes: Entries=0, SeverityScore=0/3
+--------------------------------------------------------------------------------
+================================================================================
+ DEMO 2: EARLY WEAR WARNING & ADVISORY NOTE
+================================================================================
+
+Arm ID: ARM-02  ===>  FINAL DECISION: [STATUS: MONITOR]
+--------------------------------------------------------------------------------
+Rationale:
+  * MONITOR: Predictive wear model indicates MODERATE_WEAR (Wear Risk: 85.2%).
+  * MONITOR: Minor technician observations recorded in logs.
+  * MODERATE: 'slight squeak' detected
+
+Component Signals:
+  1. Safety Monitor: Triggered=False, Warnings=False
+  2. Spoof Defense: Detected=False, Confidence=0%
+  3. Predictive Wear ML: Category=MODERATE_WEAR, P(Wear)=85.2%, Degraded Joints=['wrist']
+  4. Maintenance Notes: Entries=2, SeverityScore=1/3
+     - Note: "Noticed a slight squeak in wrist during cycle retraction. Might need grease soon."
+--------------------------------------------------------------------------------
+================================================================================
+ DEMO 3: PREDICTED SEVERE WEAR & TECHNICIAN CONFIRMATION
+================================================================================
+
+Arm ID: ARM-05  ===>  FINAL DECISION: [STATUS: SCHEDULE_MAINTENANCE]
+--------------------------------------------------------------------------------
+Rationale:
+  * SCHEDULE MAINTENANCE: ML wear model predicts SEVERE_WEAR (Severe Risk: 74.0%, Total Wear Risk: 100.0%).
+  * Affected joints: ['shoulder', 'elbow', 'wrist']
+
+Component Signals:
+  1. Safety Monitor: Triggered=False, Warnings=True
+  2. Spoof Defense: Detected=False, Confidence=0%
+  3. Predictive Wear ML: Category=SEVERE_WEAR, P(Wear)=100.0%, Degraded Joints=['shoulder', 'elbow', 'wrist']
+  4. Maintenance Notes: Entries=1, SeverityScore=2/3
+     - Note: "Excessive play detected in wrist joint gears, with noticeable jitter under load."
+--------------------------------------------------------------------------------
+================================================================================
+ DEMO 4: IMMEDIATE DETERMINISTIC SAFETY STOP (CRITICAL SENSOR LIMIT)
+================================================================================
+
+Arm ID: ARM-99  ===>  FINAL DECISION: [STATUS: EMERGENCY_STOP]
+--------------------------------------------------------------------------------
+Rationale:
+  * EMERGENCY STOP TRIGGERED: Deterministic sensor safety limit breached.
+  * CRITICAL: SHOULDER temperature (88.5 °C) exceeds critical threshold (82.0 °C).
+  * CRITICAL: SHOULDER vibration (7.80 mm/s) exceeds critical threshold (7.00 mm/s).
+
+Component Signals:
+  1. Safety Monitor: Triggered=True, Warnings=True
+     - CRITICAL: SHOULDER temperature (88.5 °C) exceeds critical threshold (82.0 °C).
+     - CRITICAL: SHOULDER vibration (7.80 mm/s) exceeds critical threshold (7.00 mm/s).
+  2. Spoof Defense: Detected=False, Confidence=0%
+  3. Predictive Wear ML: Category=SEVERE_WEAR, P(Wear)=97.0%, Degraded Joints=['shoulder']
+  4. Maintenance Notes: Entries=0, SeverityScore=0/3
+--------------------------------------------------------------------------------
+================================================================================
+ DEMO 5: SPOOFED SENSOR ATTACK DEFENSE IN ACTION
+================================================================================
+
+Arm ID: ARM-SPOOF  ===>  FINAL DECISION: [STATUS: EMERGENCY_STOP]
+--------------------------------------------------------------------------------
+Rationale:
+  * EMERGENCY STOP TRIGGERED: Sensor spoofing detected in conjunction with elevated warning telemetry. Immediate halt required to prevent unmonitored structural failure.
+  * SPOOF ATTACK [Thermal-Friction Anomaly]: SHOULDER reports negligible torque (12.0 Nm) despite high temperature (74.0 °C) and severe vibration (5.20 mm/s). Indicates synthetic torque clamping to mask mechanical seizure.
+  * SPOOF ATTACK [Kinetic Coupling Invariant]: Shoulder torque (12.0 Nm) is impossibly low given downstream loading at Elbow (160.0 Nm) and Wrist (45.0 Nm). Violates robotic serial manipulator equilibrium.
+
+Component Signals:
+  1. Safety Monitor: Triggered=False, Warnings=True
+  2. Spoof Defense: Detected=True, Confidence=88%
+     - SPOOF ATTACK [Thermal-Friction Anomaly]: SHOULDER reports negligible torque (12.0 Nm) despite high temperature (74.0 °C) and severe vibration (5.20 mm/s). Indicates synthetic torque clamping to mask mechanical seizure.
+     - SPOOF ATTACK [Kinetic Coupling Invariant]: Shoulder torque (12.0 Nm) is impossibly low given downstream loading at Elbow (160.0 Nm) and Wrist (45.0 Nm). Violates robotic serial manipulator equilibrium.
+  3. Predictive Wear ML: Category=MODERATE_WEAR, P(Wear)=97.9%, Degraded Joints=['shoulder', 'elbow']
+  4. Maintenance Notes: Entries=0, SeverityScore=0/3
+--------------------------------------------------------------------------------
+================================================================================
+ DEMO 6: EMERGENCY STOP VIA CRITICAL TECHNICIAN ALERT (SMOKE IN LOG)
+================================================================================
+
+Arm ID: ARM-06  ===>  FINAL DECISION: [STATUS: EMERGENCY_STOP]
+--------------------------------------------------------------------------------
+Rationale:
+  * EMERGENCY STOP TRIGGERED: Critical technician safety hazard detected in logs.
+  * CRITICAL: 'burning' detected
+  * CRITICAL: 'smoke' detected
+
+Component Signals:
+  1. Safety Monitor: Triggered=False, Warnings=False
+  2. Spoof Defense: Detected=False, Confidence=0%
+  3. Predictive Wear ML: Category=SEVERE_WEAR, P(Wear)=99.8%, Degraded Joints=['shoulder']
+  4. Maintenance Notes: Entries=1, SeverityScore=3/3
+     - Note: "Immediate hazard! Smoke detected from shoulder motor casing and burning smell present! Shutting down cell!"
+--------------------------------------------------------------------------------
+================================================================================
+ SUMMARY OF 4 REACHABLE OFFICIAL DECISION OUTCOMES
+================================================================================
+1. SAFE                 -> Verified in DEMO 1 (ARM-101)
+2. MONITOR              -> Verified in DEMO 2 (ARM-02)
+3. SCHEDULE_MAINTENANCE -> Verified in DEMO 3 (ARM-05) & DEMO 5 (ARM-SPOOF)
+4. EMERGENCY_STOP       -> Verified in DEMO 4 (ARM-99) & DEMO 6 (ARM-06)
+================================================================================
+
+[SAVED] Full report has also been saved to file: C:\Users\HP\Downloads\ap\output_report.txt
